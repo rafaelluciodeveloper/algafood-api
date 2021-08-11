@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.algaworks.algafood.domain.model.Estado;
 
-public interface EstadoRespository {
+public interface EstadoRepository {
 
 	List<Estado> listar();
 
@@ -12,6 +12,6 @@ public interface EstadoRespository {
 
 	Estado salvar(Estado estado);
 
-	void remover(Estado estado);
+	void remover(Long id);
 
 }
