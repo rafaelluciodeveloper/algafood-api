@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Entity(name = "tab_grupos")
+@Entity
 public class Grupo {
 	@EqualsAndHashCode.Include
 	@Id
@@ -28,6 +28,6 @@ public class Grupo {
 	private String nome;
 
 	@ManyToMany
-	@JoinTable(name = "tab_grupo_permissao", joinColumns = @JoinColumn(name = "grupo_id"), inverseJoinColumns = @JoinColumn(name = "permissao_id"))
+	@JoinTable(name = "grupo_permissao", joinColumns = @JoinColumn(name = "grupo_id"), inverseJoinColumns = @JoinColumn(name = "permissao_id"))
 	private List<Permissao> permissoes = new ArrayList<>();
 }
