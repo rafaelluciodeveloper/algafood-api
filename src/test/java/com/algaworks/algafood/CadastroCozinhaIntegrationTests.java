@@ -1,5 +1,7 @@
 package com.algaworks.algafood;
 
+import com.algaworks.algafood.domain.exception.CozinhaNaoEncontradaException;
+import com.algaworks.algafood.domain.exception.EntidadeEmUsoException;
 import com.algaworks.algafood.domain.model.Cozinha;
 import com.algaworks.algafood.domain.service.CozinhaService;
 import org.junit.Test;
@@ -21,7 +23,7 @@ public class CadastroCozinhaIntegrationTests {
     private CozinhaService cozinhaService;
 
     @Test
-    public void testarCadastroCozinhaComSucesso(){
+    public void deveAtribuirId_QuandoCadastrarCozinhaComDadosCorretos(){
         Cozinha novaCozinha = new Cozinha();
         novaCozinha.setNome("Chinesa");
 
@@ -32,10 +34,20 @@ public class CadastroCozinhaIntegrationTests {
     }
 
     @Test(expected = ConstraintViolationException.class)
-    public void deveFalharAoCadastrarCozinhaQuandoSemNome(){
+    public void deveFalhar_QuandoCadastrarCozinhaSemNome(){
         Cozinha novaCozinha = new Cozinha();
         novaCozinha.setNome(null);
 
         novaCozinha = cozinhaService.salvar(novaCozinha);
+    }
+
+    @Test(expected = EntidadeEmUsoException.class)
+    public void deveFalhar_QuandoExcluirCozinhaEmUso(){
+        cozinhaService.excluir(1L);
+    }
+
+    @Test(expected = CozinhaNaoEncontradaException.class)
+    public void deveFalhar_QuandoExcluirCozinhaInexistente(){
+        cozinhaService.excluir(1000L);
     }
 }
