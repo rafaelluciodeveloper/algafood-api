@@ -42,7 +42,20 @@ public class CadastroCozinhaApi {
                     .when()
                         .get()
                     .then()
-                        .body("" , Matchers.hasSize(4))
-                        .body("nome", Matchers.hasItems("Indiana","Tailandesa"));
+                        .body("" , Matchers.hasSize(4));
     }
+
+    @Test
+    public void deveRetornarStatus2021_QuandoCadastrarCozinha(){
+        RestAssured.given()
+                    .body("{ \"nome}\": \"Chinesa\" } ")
+                    .contentType(ContentType.JSON)
+                    .accept(ContentType.JSON)
+                    .when()
+                        .post()
+                    .then()
+                        .statusCode(HttpStatus.CREATED.value());
+    }
+
+
 }
