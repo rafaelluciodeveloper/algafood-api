@@ -11,6 +11,8 @@ import com.algaworks.algafood.domain.model.Cidade;
 import com.algaworks.algafood.domain.model.Estado;
 import com.algaworks.algafood.domain.respository.CidadeRepository;
 
+import javax.transaction.Transactional;
+
 @Service
 public class CidadeService {
 
@@ -22,6 +24,7 @@ public class CidadeService {
 	@Autowired
 	private EstadoService cadastroEstado;
 
+	@Transactional
 	public Cidade salvar(Cidade cidade) {
 		Long estadoId = cidade.getEstado().getId();
 
@@ -32,6 +35,7 @@ public class CidadeService {
 		return cidadeRepository.save(cidade);
 	}
 
+	@Transactional
 	public void excluir(Long cidadeId) {
 		try {
 			cidadeRepository.deleteById(cidadeId);

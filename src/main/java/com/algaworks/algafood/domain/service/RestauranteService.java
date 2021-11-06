@@ -8,6 +8,8 @@ import com.algaworks.algafood.domain.model.Cozinha;
 import com.algaworks.algafood.domain.model.Restaurante;
 import com.algaworks.algafood.domain.respository.RestauranteRepository;
 
+import javax.transaction.Transactional;
+
 @Service
 public class RestauranteService {
 
@@ -17,6 +19,7 @@ public class RestauranteService {
 	@Autowired
 	private CozinhaService cadastroCozinha;
 
+	@Transactional
 	public Restaurante salvar(Restaurante restaurante) {
 		Long cozinhaId = restaurante.getCozinha().getId();
 
