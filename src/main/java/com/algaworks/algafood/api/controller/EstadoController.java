@@ -1,63 +1,72 @@
 package com.algaworks.algafood.api.controller;
 
-import java.util.List;
-
-import javax.validation.Valid;
-
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.algaworks.algafood.api.assembler.EstadoDTOAssembler;
+import com.algaworks.algafood.api.disassembler.EstadoInputDTODisassembler;
+import com.algaworks.algafood.api.dto.EstadoDTO;
+import com.algaworks.algafood.api.dto.input.EstadoInputDTO;
 import com.algaworks.algafood.domain.model.Estado;
 import com.algaworks.algafood.domain.respository.EstadoRepository;
 import com.algaworks.algafood.domain.service.EstadoService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/estados")
 public class EstadoController {
 
-	@Autowired
-	private EstadoService estadoService;
+    @Autowired
+    private EstadoService estadoService;
 
-	@Autowired
-	private EstadoRepository estadoRepository;
+    @Autowired
+    private EstadoRepository estadoRepository;
 
-	@GetMapping("/{estadoId}")
-	public Estado buscar(@PathVariable Long estadoId) {
-		return estadoService.buscarOuFalhar(estadoId);
-	}
+    @Autowired
+    private EstadoDTOAssembler estadoDTOAssembler;
 
-	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
-	public Estado adicionar(@RequestBody @Valid Estado estado) {
-		return estadoService.salvar(estado);
-	}
+    @Autowired
+    private EstadoInputDTODisassembler estadoInputDTODisassembler;
 
-	@PutMapping("/{estadoId}")
-	public Estado atualizar(@PathVariable Long estadoId, @RequestBody @Valid Estado estado) {
-		Estado estadoAtual = estadoService.buscarOuFalhar(estadoId);
+    @GetMapping("/{estadoId}")
+    public EstadoDTO buscar(@PathVariable Long estadoId) {
+        Estado estado = estadoService.buscarOuFalhar(estadoId);
 
-		BeanUtils.copyProperties(estado, estadoAtual, "id");
+        return estadoDTOAssembler.toDTO(estado);
+    }
 
-		return estadoService.salvar(estadoAtual);
-	}
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public EstadoDTO adicionar(@RequestBody @Valid EstadoInputDTO estadoInputDTO) {
+        Estado estado = estadoInputDTODisassembler.toDomain(estadoInputDTO);
 
-	@DeleteMapping("/{estadoId}")
-	public void remover(@PathVariable Long estadoId) {
-		estadoService.excluir(estadoId);
-	}
+        estado = estadoService.salvar(estado);
 
-	@GetMapping
-	public List<Estado> listar() {
-		return estadoRepository.findAll();
-	}
+        return estadoDTOAssembler.toDTO(estado);
+    }
+
+    @PutMapping("/{estadoId}")
+    public EstadoDTO atualizar(@PathVariable Long estadoId, @RequestBody @Valid EstadoInputDTO estadoInputDTO) {
+        Estado estadoAtual = estadoService.buscarOuFalhar(estadoId);
+
+        estadoInputDTODisassembler.copyToDomain(estadoInputDTO, estadoAtual);
+
+        estadoAtual = estadoService.salvar(estadoAtual);
+
+        return estadoDTOAssembler.toDTO(estadoAtual);
+    }
+
+    @DeleteMapping("/{estadoId}")
+    public void remover(@PathVariable Long estadoId) {
+        estadoService.excluir(estadoId);
+    }
+
+    @GetMapping
+    public List<EstadoDTO> listar() {
+        List<Estado> estadoList = estadoRepository.findAll();
+
+        return estadoDTOAssembler.toCollectionDTO(estadoList);
+    }
 }
