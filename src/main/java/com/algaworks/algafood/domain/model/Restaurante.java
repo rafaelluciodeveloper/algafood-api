@@ -25,42 +25,47 @@ import java.util.List;
 @Table
 public class Restaurante {
 
-	@Id
-	@EqualsAndHashCode.Include
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long Id;
+    @Id
+    @EqualsAndHashCode.Include
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long Id;
 
-	@NotBlank
-	@Column(nullable = false)
-	private String nome;
+    @Column(nullable = false)
+    private String nome;
 
-	@NotNull
-	@Column(name = "taxa_frete", nullable = false)
-	private BigDecimal taxaFrete;
+    @Column(name = "taxa_frete", nullable = false)
+    private BigDecimal taxaFrete;
 
-	@Valid
-	@ConvertGroup(from = Default.class, to = Groups.CozinhaId.class)
-	@NotNull
-	@ManyToOne
-	@JoinColumn(name = "cozinha_id", nullable = false)
-	private Cozinha cozinha;
+    @ManyToOne
+    @JoinColumn(name = "cozinha_id", nullable = false)
+    private Cozinha cozinha;
 
-	@Embedded
-	private Endereco endereco;
+    @Embedded
+    private Endereco endereco;
 
-	@CreationTimestamp
-	@Column(nullable = false, columnDefinition = "datetime")
-	private OffsetDateTime dataCadastro;
+    private Boolean ativo = Boolean.TRUE;
 
-	@UpdateTimestamp
-	@Column(nullable = false, columnDefinition = "datetime")
-	private OffsetDateTime dataAtualizacao;
+    @CreationTimestamp
+    @Column(nullable = false, columnDefinition = "datetime")
+    private OffsetDateTime dataCadastro;
 
-	@ManyToMany
-	@JoinTable(name = "restaurante_forma_pagamento", joinColumns = @JoinColumn(name = "restaurante_id"), inverseJoinColumns = @JoinColumn(name = "forma_pagamento_id"))
-	private List<FormaPagamento> formasPagamento = new ArrayList<>();
+    @UpdateTimestamp
+    @Column(nullable = false, columnDefinition = "datetime")
+    private OffsetDateTime dataAtualizacao;
 
-	@OneToMany
-	private List<Produto> produtos = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(name = "restaurante_forma_pagamento", joinColumns = @JoinColumn(name = "restaurante_id"), inverseJoinColumns = @JoinColumn(name = "forma_pagamento_id"))
+    private List<FormaPagamento> formasPagamento = new ArrayList<>();
+
+    @OneToMany
+    private List<Produto> produtos = new ArrayList<>();
+
+    public void ativar() {
+        setAtivo(true);
+    }
+
+    public void inativar() {
+        setAtivo(false);
+    }
 
 }

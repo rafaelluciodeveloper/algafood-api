@@ -1,5 +1,6 @@
 package com.algaworks.algafood.domain.service;
 
+import com.algaworks.algafood.domain.model.Cidade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,26 +14,46 @@ import javax.transaction.Transactional;
 @Service
 public class RestauranteService {
 
-	@Autowired
-	private RestauranteRepository restauranteRepository;
+    @Autowired
+    private RestauranteRepository restauranteRepository;
 
-	@Autowired
-	private CozinhaService cadastroCozinha;
+    @Autowired
+    private CozinhaService cadastroCozinha;
 
-	@Transactional
-	public Restaurante salvar(Restaurante restaurante) {
-		Long cozinhaId = restaurante.getCozinha().getId();
+    @Autowired
+    private CidadeService cidadeService;
 
-		Cozinha cozinha = cadastroCozinha.buscarOuFalhar(cozinhaId);
+    @Transactional
+    public Restaurante salvar(Restaurante restaurante) {
+        Long cozinhaId = restaurante.getCozinha().getId();
+        Long cidadeId = restaurante.getEndereco().getCidade().getId();
 
-		restaurante.setCozinha(cozinha);
+        Cozinha cozinha = cadastroCozinha.buscarOuFalhar(cozinhaId);
+        Cidade cidade = cidadeService.buscarOuFalhar(cidadeId);
 
-		return restauranteRepository.save(restaurante);
-	}
+        restaurante.setCozinha(cozinha);
+        restaurante.getEndereco().setCidade(cidade);
 
-	public Restaurante buscarOuFalhar(Long restauranteId) {
-		return restauranteRepository.findById(restauranteId)
-				.orElseThrow(() -> new RestauranteNaoEncontradoException(restauranteId));
-	}
+        return restauranteRepository.save(restaurante);
+    }
+
+    @Transactional
+    public void ativar(Long restauranteId) {
+        Restaurante restaurante = buscarOuFalhar(restauranteId);
+
+        restaurante.inativar();
+    }
+
+    @Transactional
+    public void inativar(Long restauranteId) {
+        Restaurante restaurante = buscarOuFalhar(restauranteId);
+
+        restaurante.inativar();
+    }
+
+    public Restaurante buscarOuFalhar(Long restauranteId) {
+        return restauranteRepository.findById(restauranteId)
+                .orElseThrow(() -> new RestauranteNaoEncontradoException(restauranteId));
+    }
 
 }

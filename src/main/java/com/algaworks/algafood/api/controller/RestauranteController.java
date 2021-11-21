@@ -2,6 +2,7 @@ package com.algaworks.algafood.api.controller;
 
 import com.algaworks.algafood.api.assembler.RestauranteDTOAssembler;
 import com.algaworks.algafood.api.disassembler.RestauranteInputDTODisassembler;
+import com.algaworks.algafood.domain.exception.CidadeNaoEncontradaException;
 import com.algaworks.algafood.domain.exception.CozinhaNaoEncontradaException;
 import com.algaworks.algafood.domain.exception.NegocioException;
 import com.algaworks.algafood.domain.model.Restaurante;
@@ -48,7 +49,7 @@ public class RestauranteController {
     public RestauranteDTO adicionar(@RequestBody @Valid RestauranteInputDTO restaurante) {
         try {
             return restauranteDTOAssembler.toDTO(restauranteService.salvar(restauranteInputDTODisassembler.toDomain(restaurante)));
-        } catch (CozinhaNaoEncontradaException e) {
+        } catch (CozinhaNaoEncontradaException | CidadeNaoEncontradaException e) {
             throw new NegocioException(e.getMessage());
         }
     }
@@ -62,9 +63,21 @@ public class RestauranteController {
             restauranteInputDTODisassembler.copyToDomain(restauranteInputDTO, restauranteAtual);
 
             return restauranteDTOAssembler.toDTO(restauranteService.salvar(restauranteAtual));
-        } catch (CozinhaNaoEncontradaException e) {
+        } catch (CozinhaNaoEncontradaException | CidadeNaoEncontradaException e) {
             throw new NegocioException(e.getMessage());
         }
+    }
+
+    @PutMapping("/{restauranteId}/ativo")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void ativar(@PathVariable Long restauranteId) {
+        restauranteService.ativar(restauranteId);
+    }
+
+    @DeleteMapping("/{restauranteId}/ativo")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void inativar(@PathVariable Long restauranteId) {
+        restauranteService.ativar(restauranteId);
     }
 
 }
