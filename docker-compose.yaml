@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
 
-  mysql:
+  mariadb:
     image: mariadb:10.4
     restart: always
     ports:
@@ -26,4 +26,4 @@ services:
       - mariadb
 
 volumes:
-  - mariadb-data
+  mariadb-data:
