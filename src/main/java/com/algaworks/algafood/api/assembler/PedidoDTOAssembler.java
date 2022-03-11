@@ -1,27 +1,27 @@
 package com.algaworks.algafood.api.assembler;
 
-import com.algaworks.algafood.api.dto.GrupoDTO;
-import com.algaworks.algafood.domain.model.Grupo;
+import com.algaworks.algafood.api.dto.PedidoDTO;
+import com.algaworks.algafood.api.dto.PedidoResumoDTO;
+import com.algaworks.algafood.domain.model.Pedido;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class GrupoDTOAssembler {
+public class PedidoDTOAssembler {
 
     @Autowired
     private ModelMapper modelMapper;
 
-    public GrupoDTO toDTO(Grupo grupo) {
-        return modelMapper.map(grupo, GrupoDTO.class);
+    public PedidoDTO toDTO(Pedido pedido) {
+        return modelMapper.map(pedido, PedidoDTO.class);
     }
 
-    public List<GrupoDTO> toCollectionDTO(Collection<Grupo> grupos) {
-        return grupos.stream()
+    public List<PedidoDTO> toCollectionDTO(List<Pedido> pedidos) {
+        return pedidos.stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
