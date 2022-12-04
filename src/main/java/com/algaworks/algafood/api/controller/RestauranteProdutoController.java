@@ -1,14 +1,14 @@
 package com.algaworks.algafood.api.controller;
 
-import com.algaworks.algafood.api.assembler.ProdutoDTOAssembler;
-import com.algaworks.algafood.api.disassembler.ProdutoDTODisassembler;
-import com.algaworks.algafood.api.dto.ProdutoDTO;
-import com.algaworks.algafood.api.dto.input.ProdutoInputDTO;
+import com.algaworks.algafood.api.assembler.ProdutoInputDisassembler;
+import com.algaworks.algafood.api.assembler.ProdutoModelAssembler;
+import com.algaworks.algafood.api.model.ProdutoModel;
+import com.algaworks.algafood.api.model.input.ProdutoInput;
 import com.algaworks.algafood.domain.model.Produto;
 import com.algaworks.algafood.domain.model.Restaurante;
-import com.algaworks.algafood.domain.respository.ProdutoRepository;
-import com.algaworks.algafood.domain.service.ProdutoService;
-import com.algaworks.algafood.domain.service.RestauranteService;
+import com.algaworks.algafood.domain.repository.ProdutoRepository;
+import com.algaworks.algafood.domain.service.CadastroProdutoService;
+import com.algaworks.algafood.domain.service.CadastroRestauranteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -20,61 +20,61 @@ import java.util.List;
 @RequestMapping("/restaurantes/{restauranteId}/produtos")
 public class RestauranteProdutoController {
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
-
-    @Autowired
-    private ProdutoService produtoService;
-
-    @Autowired
-    private RestauranteService restauranteService;
-
-    @Autowired
-    private ProdutoDTOAssembler produtoDTOAssembler;
-
-    @Autowired
-    private ProdutoDTODisassembler produtoDTODisassembler;
-
-    @GetMapping
-    public List<ProdutoDTO> listar(@PathVariable Long restauranteId) {
-        Restaurante restaurante = restauranteService.buscarOuFalhar(restauranteId);
-
-        List<Produto> todosProdutos = produtoRepository.findByRestaurante(restaurante);
-
-        return produtoDTOAssembler.toCollectionDTO(todosProdutos);
-    }
-
-    @GetMapping("/{produtoId}")
-    public ProdutoDTO buscar(@PathVariable Long restauranteId, @PathVariable Long produtoId) {
-        Produto produto = produtoService.buscarOuFalhar(restauranteId, produtoId);
-
-        return produtoDTOAssembler.toDTO(produto);
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ProdutoDTO adicionar(@PathVariable Long restauranteId,
-                                  @RequestBody @Valid ProdutoInputDTO produtoInput) {
-        Restaurante restaurante = restauranteService.buscarOuFalhar(restauranteId);
-
-        Produto produto = produtoDTODisassembler.toDomain(produtoInput);
-        produto.setRestaurante(restaurante);
-
-        produto = produtoService.salvar(produto);
-
-        return produtoDTOAssembler.toDTO(produto);
-    }
-
-    @PutMapping("/{produtoId}")
-    public ProdutoDTO atualizar(@PathVariable Long restauranteId, @PathVariable Long produtoId,
-                                  @RequestBody @Valid ProdutoInputDTO produtoInput) {
-        Produto produtoAtual = produtoService.buscarOuFalhar(restauranteId, produtoId);
-
-        produtoDTODisassembler.copyToDomain(produtoInput, produtoAtual);
-
-        produtoAtual = produtoService.salvar(produtoAtual);
-
-        return produtoDTOAssembler.toDTO(produtoAtual);
-    }
-
+	@Autowired
+	private ProdutoRepository produtoRepository;
+	
+	@Autowired
+	private CadastroProdutoService cadastroProduto;
+	
+	@Autowired
+	private CadastroRestauranteService cadastroRestaurante;
+	
+	@Autowired
+	private ProdutoModelAssembler produtoModelAssembler;
+	
+	@Autowired
+	private ProdutoInputDisassembler produtoInputDisassembler;
+	
+	@GetMapping
+	public List<ProdutoModel> listar(@PathVariable Long restauranteId) {
+		Restaurante restaurante = cadastroRestaurante.buscarOuFalhar(restauranteId);
+		
+		List<Produto> todosProdutos = produtoRepository.findByRestaurante(restaurante);
+		
+		return produtoModelAssembler.toCollectionModel(todosProdutos);
+	}
+	
+	@GetMapping("/{produtoId}")
+	public ProdutoModel buscar(@PathVariable Long restauranteId, @PathVariable Long produtoId) {
+		Produto produto = cadastroProduto.buscarOuFalhar(restauranteId, produtoId);
+		
+		return produtoModelAssembler.toModel(produto);
+	}
+	
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public ProdutoModel adicionar(@PathVariable Long restauranteId,
+			@RequestBody @Valid ProdutoInput produtoInput) {
+		Restaurante restaurante = cadastroRestaurante.buscarOuFalhar(restauranteId);
+		
+		Produto produto = produtoInputDisassembler.toDomainObject(produtoInput);
+		produto.setRestaurante(restaurante);
+		
+		produto = cadastroProduto.salvar(produto);
+		
+		return produtoModelAssembler.toModel(produto);
+	}
+	
+	@PutMapping("/{produtoId}")
+	public ProdutoModel atualizar(@PathVariable Long restauranteId, @PathVariable Long produtoId,
+			@RequestBody @Valid ProdutoInput produtoInput) {
+		Produto produtoAtual = cadastroProduto.buscarOuFalhar(restauranteId, produtoId);
+		
+		produtoInputDisassembler.copyToDomainObject(produtoInput, produtoAtual);
+		
+		produtoAtual = cadastroProduto.salvar(produtoAtual);
+		
+		return produtoModelAssembler.toModel(produtoAtual);
+	}
+	
 }

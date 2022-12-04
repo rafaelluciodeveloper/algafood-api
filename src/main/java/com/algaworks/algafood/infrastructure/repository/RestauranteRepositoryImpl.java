@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import com.algaworks.algafood.domain.model.Restaurante;
-import com.algaworks.algafood.domain.respository.RestauranteRepository;
+import com.algaworks.algafood.domain.repository.RestauranteRepository;
 
 @Repository
 public class RestauranteRepositoryImpl implements RestauranteRepositoryQueries {

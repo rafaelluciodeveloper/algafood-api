@@ -1,7 +1,7 @@
 package com.algaworks.algafood.core.modelmapper;
 
-import com.algaworks.algafood.api.dto.EnderecoDTO;
-import com.algaworks.algafood.api.dto.input.ItemPedidoInputDTO;
+import com.algaworks.algafood.api.model.EnderecoModel;
+import com.algaworks.algafood.api.model.input.ItemPedidoInput;
 import com.algaworks.algafood.domain.model.Endereco;
 import com.algaworks.algafood.domain.model.ItemPedido;
 import org.modelmapper.ModelMapper;
@@ -16,16 +16,15 @@ public class ModelMapperConfig {
 
         var modelMapper = new ModelMapper();
 
+        modelMapper.createTypeMap(ItemPedidoInput.class, ItemPedido.class)
+                .addMappings(mapper -> mapper.skip(ItemPedido::setId));
+
         var enderecoToEnderecoModelTypeMap = modelMapper.createTypeMap(
-                Endereco.class, EnderecoDTO.class
-        );
+                Endereco.class, EnderecoModel.class);
 
         enderecoToEnderecoModelTypeMap.<String>addMapping(
-                src -> src.getCidade().getEstado().getNome(),
-                (dest , value) -> dest.getCidade().setEstado(value));
-
-        modelMapper.createTypeMap(ItemPedidoInputDTO.class, ItemPedido.class)
-                .addMappings(mapper -> mapper.skip(ItemPedido::setId));
+                enderecoSrc -> enderecoSrc.getCidade().getEstado().getNome(),
+                (enderecoModelDest, value) -> enderecoModelDest.getCidade().setEstado(value));
 
         return modelMapper;
     }

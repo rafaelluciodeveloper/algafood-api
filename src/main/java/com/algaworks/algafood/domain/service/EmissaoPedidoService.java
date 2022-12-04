@@ -3,75 +3,74 @@ package com.algaworks.algafood.domain.service;
 import com.algaworks.algafood.domain.exception.NegocioException;
 import com.algaworks.algafood.domain.exception.PedidoNaoEncontradoException;
 import com.algaworks.algafood.domain.model.*;
-import com.algaworks.algafood.domain.respository.PedidoRepository;
+import com.algaworks.algafood.domain.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmissaoPedidoService {
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+	@Autowired
+	private PedidoRepository pedidoRepository;
 
-    @Autowired
-    private RestauranteService restauranteService;
+	@Autowired
+	private CadastroRestauranteService cadastroRestaurante;
 
-    @Autowired
-    private CidadeService cidadeService;
+	@Autowired
+	private CadastroCidadeService cadastroCidade;
 
-    @Autowired
-    private UsuarioService usuarioService;
+	@Autowired
+	private CadastroUsuarioService cadastroUsuario;
 
-    @Autowired
-    private ProdutoService produtoService;
+	@Autowired
+	private CadastroProdutoService cadastroProduto;
 
-    @Autowired
-    private FormaPagamentoService formaPagamentoService;
+	@Autowired
+	private CadastroFormaPagamentoService cadastroFormaPagamento;
 
-    public Pedido buscarOuFalhar(String codigo) {
-        return pedidoRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new PedidoNaoEncontradoException(codigo));
-    }
+	@Transactional
+	public Pedido emitir(Pedido pedido) {
+		validarPedido(pedido);
+		validarItens(pedido);
 
-    @Transactional
-    public Pedido emitir(Pedido pedido) {
-        validarPedido(pedido);
-        validarItens(pedido);
+		pedido.setTaxaFrete(pedido.getRestaurante().getTaxaFrete());
+		pedido.calcularValorTotal();
 
-        pedido.setTaxaFrete(pedido.getRestaurante().getTaxaFrete());
-        pedido.calcularValorTotal();
+		return pedidoRepository.save(pedido);
+	}
 
-        return pedidoRepository.save(pedido);
-    }
+	private void validarPedido(Pedido pedido) {
+		Cidade cidade = cadastroCidade.buscarOuFalhar(pedido.getEnderecoEntrega().getCidade().getId());
+		Usuario cliente = cadastroUsuario.buscarOuFalhar(pedido.getCliente().getId());
+		Restaurante restaurante = cadastroRestaurante.buscarOuFalhar(pedido.getRestaurante().getId());
+		FormaPagamento formaPagamento = cadastroFormaPagamento.buscarOuFalhar(pedido.getFormaPagamento().getId());
 
-    private void validarPedido(Pedido pedido) {
-        Cidade cidade = cidadeService.buscarOuFalhar(pedido.getEnderecoEntrega().getCidade().getId());
-        Usuario cliente = usuarioService.buscarOuFalhar(pedido.getCliente().getId());
-        Restaurante restaurante = restauranteService.buscarOuFalhar(pedido.getRestaurante().getId());
-        FormaPagamento formaPagamento = formaPagamentoService.buscarOuFalhar(pedido.getFormaPagamento().getId());
+		pedido.getEnderecoEntrega().setCidade(cidade);
+		pedido.setCliente(cliente);
+		pedido.setRestaurante(restaurante);
+		pedido.setFormaPagamento(formaPagamento);
+		
+		if (restaurante.naoAceitaFormaPagamento(formaPagamento)) {
+			throw new NegocioException(String.format("Forma de pagamento '%s' não é aceita por esse restaurante.",
+					formaPagamento.getDescricao()));
+		}
+	}
 
-        pedido.getEnderecoEntrega().setCidade(cidade);
-        pedido.setCliente(cliente);
-        pedido.setRestaurante(restaurante);
-        pedido.setFormaPagamento(formaPagamento);
-
-        if (restaurante.naoAceitaFormaPagamento(formaPagamento)) {
-            throw new NegocioException(String.format("Forma de pagamento '%s' não é aceita por esse restaurante.",
-                    formaPagamento.getDescricao()));
-        }
-    }
-
-    private void validarItens(Pedido pedido) {
-        pedido.getItens().forEach(item -> {
-            Produto produto = produtoService.buscarOuFalhar(
-                    pedido.getRestaurante().getId(), item.getProduto().getId());
-
-            item.setPedido(pedido);
-            item.setProduto(produto);
-            item.setPrecoUnitario(produto.getPreco());
-        });
-    }
+	private void validarItens(Pedido pedido) {
+		pedido.getItens().forEach(item -> {
+			Produto produto = cadastroProduto.buscarOuFalhar(
+					pedido.getRestaurante().getId(), item.getProduto().getId());
+			
+			item.setPedido(pedido);
+			item.setProduto(produto);
+			item.setPrecoUnitario(produto.getPreco());
+		});
+	}
+	
+	public Pedido buscarOuFalhar(String codigoPedido) {
+		return pedidoRepository.findByCodigo(codigoPedido)
+			.orElseThrow(() -> new PedidoNaoEncontradoException(codigoPedido));
+	}
 
 }

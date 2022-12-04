@@ -1,16 +1,16 @@
 package com.algaworks.algafood.api.controller;
 
-import com.algaworks.algafood.api.assembler.PedidoDTOAssembler;
-import com.algaworks.algafood.api.assembler.PedidoResumoDTOAssembler;
-import com.algaworks.algafood.api.disassembler.PedidoInputDTODisassembler;
-import com.algaworks.algafood.api.dto.PedidoDTO;
-import com.algaworks.algafood.api.dto.PedidoResumoDTO;
-import com.algaworks.algafood.api.dto.input.PedidoInputDTO;
+import com.algaworks.algafood.api.assembler.PedidoInputDisassembler;
+import com.algaworks.algafood.api.assembler.PedidoModelAssembler;
+import com.algaworks.algafood.api.assembler.PedidoResumoModelAssembler;
+import com.algaworks.algafood.api.model.PedidoModel;
+import com.algaworks.algafood.api.model.PedidoResumoModel;
+import com.algaworks.algafood.api.model.input.PedidoInput;
 import com.algaworks.algafood.domain.exception.EntidadeNaoEncontradaException;
 import com.algaworks.algafood.domain.exception.NegocioException;
 import com.algaworks.algafood.domain.model.Pedido;
 import com.algaworks.algafood.domain.model.Usuario;
-import com.algaworks.algafood.domain.respository.PedidoRepository;
+import com.algaworks.algafood.domain.repository.PedidoRepository;
 import com.algaworks.algafood.domain.service.EmissaoPedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,52 +23,51 @@ import java.util.List;
 @RequestMapping(value = "/pedidos")
 public class PedidoController {
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+	@Autowired
+	private PedidoRepository pedidoRepository;
+	
+	@Autowired
+	private EmissaoPedidoService emissaoPedido;
+	
+	@Autowired
+	private PedidoModelAssembler pedidoModelAssembler;
+	
+	@Autowired
+	private PedidoResumoModelAssembler pedidoResumoModelAssembler;
+	
+	@Autowired
+	private PedidoInputDisassembler pedidoInputDisassembler;
+	
+	@GetMapping
+	public List<PedidoResumoModel> listar() {
+		List<Pedido> todosPedidos = pedidoRepository.findAll();
+		
+		return pedidoResumoModelAssembler.toCollectionModel(todosPedidos);
+	}
+	
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public PedidoModel adicionar(@Valid @RequestBody PedidoInput pedidoInput) {
+		try {
+			Pedido novoPedido = pedidoInputDisassembler.toDomainObject(pedidoInput);
 
-    @Autowired
-    private EmissaoPedidoService emissaoPedido;
+			// TODO pegar usuário autenticado
+			novoPedido.setCliente(new Usuario());
+			novoPedido.getCliente().setId(1L);
 
-    @Autowired
-    private PedidoDTOAssembler pedidoDTOAssembler;
+			novoPedido = emissaoPedido.emitir(novoPedido);
 
-    @Autowired
-    private PedidoResumoDTOAssembler pedidoResumoDTOAssembler;
-
-    @Autowired
-    private PedidoInputDTODisassembler pedidoInputDTODisassembler;
-
-    @GetMapping
-    public List<PedidoResumoDTO> listar() {
-        List<Pedido> todosPedidos = pedidoRepository.findAll();
-
-        return pedidoResumoDTOAssembler.toCollectionDTO(todosPedidos);
-    }
-
-    @GetMapping("/{codigo}")
-    public PedidoDTO buscar(@PathVariable String codigo) {
-        Pedido pedido = emissaoPedido.buscarOuFalhar(codigo);
-
-        return pedidoDTOAssembler.toDTO(pedido);
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public PedidoDTO adicionar(@Valid @RequestBody PedidoInputDTO pedidoInput) {
-        try {
-            Pedido novoPedido = pedidoInputDTODisassembler.toDomain(pedidoInput);
-
-            // TODO pegar usuário autenticado
-            novoPedido.setCliente(new Usuario());
-            novoPedido.getCliente().setId(1L);
-
-            novoPedido = emissaoPedido.emitir(novoPedido);
-
-            return pedidoDTOAssembler.toDTO(novoPedido);
-        } catch (EntidadeNaoEncontradaException e) {
-            throw new NegocioException(e.getMessage(), e);
-        }
-    }
-
-
+			return pedidoModelAssembler.toModel(novoPedido);
+		} catch (EntidadeNaoEncontradaException e) {
+			throw new NegocioException(e.getMessage(), e);
+		}
+	}
+	
+	@GetMapping("/{codigoPedido}")
+	public PedidoModel buscar(@PathVariable String codigoPedido) {
+		Pedido pedido = emissaoPedido.buscarOuFalhar(codigoPedido);
+		
+		return pedidoModelAssembler.toModel(pedido);
+	}
+	
 }
